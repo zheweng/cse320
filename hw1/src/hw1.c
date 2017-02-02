@@ -92,7 +92,7 @@ char validargs(int argc, char** argv, FILE** in, FILE** out)
 								*out=stdout;
 								ret|=0X40;
 								ret|=(n%length);
-								printf("%d\n",ret);
+								//printf("%d\n",ret);
 								return ret;
 							}
 							else{
@@ -117,7 +117,7 @@ char validargs(int argc, char** argv, FILE** in, FILE** out)
 									*out=stdout;
 									ret|=0X40;
 									ret|=(n%length);
-									printf("%d\n",ret);
+									//printf("%d\n",ret);
 									return ret;
 								}
 								else
@@ -286,7 +286,7 @@ char validargs(int argc, char** argv, FILE** in, FILE** out)
 }
 	/* code here */
 //Part 2
-int Subcipher(int n,FILE**in, FILE**out){
+int Subcipheren(int n,FILE**in, FILE**out){
 
 	char* bp=Alphabet;
 
@@ -296,9 +296,9 @@ int Subcipher(int n,FILE**in, FILE**out){
 		length++;
 		bp++;
 	}
-	printf("%d\n",length);
+
 	bp=Alphabet;
-	printf("%s\n",bp);
+
 
 
 	int c;
@@ -346,7 +346,7 @@ int Subcipher(int n,FILE**in, FILE**out){
 
 
 		}
-		printf("%c",c);
+		fputc(c,*out);
 		bp=Alphabet;
 
 
@@ -360,6 +360,83 @@ int Subcipher(int n,FILE**in, FILE**out){
 	}
 
 	return 0;
+}
+
+int Subcipherdec(int n, FILE** in, FILE** out){
+	char* bp=Alphabet;
+
+	int length=0;
+	while(*bp!='\0')
+	{
+		length++;
+		bp++;
+	}
+
+	bp=Alphabet;
+
+
+
+	int c;
+	while ( (c = fgetc(*in)) != EOF)
+
+	{
+		//printf("c is %c\n", c);
+		int account=0;
+
+		if(c>=97&&c<=122)
+		{
+			c=c-32;
+		}
+		while(*bp!='\0')
+		{
+
+			if(*bp==c)
+			{
+				if(account-n<=0)
+				{
+					c=*(bp-n+length);
+					break;
+
+
+				}
+				else
+				{
+					c=*(bp-n);
+					break;
+
+
+				}
+
+
+			}
+
+			else
+			{
+				bp++;
+				account++;
+
+			}
+
+
+
+
+		}
+		fputc(c,*out);
+		bp=Alphabet;
+
+
+
+
+
+
+
+
+
+	}
+
+	return 0;
+
+
 }
 
 

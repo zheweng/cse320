@@ -19,7 +19,9 @@
  */
 char validargs(int argc, char **argv, FILE **in, FILE **out);
 
-int Subcipher(int n,FILE** in, FILE** out);
+int Subcipheren(int n,FILE** in, FILE** out);
+int Subcipherdec(int n,FILE** in, FILE** out);
+
 
 
 #define USAGE(retcode) do{                                                        \
