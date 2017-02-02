@@ -12,6 +12,7 @@ int main(int argc, char **argv) {
     /* Note: create a variable to assign the result of validargs */
 
     result=validargs(argc, argv, &in, &out);
+    printf("%d\n",result);
    // printf("%d\n",result);
 
 
@@ -23,7 +24,7 @@ int main(int argc, char **argv) {
 
     }
     /*any form of -h ,mode=-128 */
-    if(result==(result&0X80)){
+    if((result&0X80)==0X80){
 
 
     	USAGE(result);
