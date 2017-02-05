@@ -1,17 +1,27 @@
 #include "hw1.h"
+#include "info.h"
 
 int main(int argc, char **argv) {
 
     FILE* in;
     FILE* out;
-    char result=0;
+    char*bp=Alphabet;
+    int length=0;
+
+    while(*bp!='\0'){
+        length++;
+        bp++;
+    }
+    bp=Alphabet;
+
+
 
 
 
 
     /* Note: create a variable to assign the result of validargs */
 
-    result=validargs(argc, argv, &in, &out);
+    char result=validargs(argc, argv, &in, &out);
     //printf("ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss");
    // printf("%d\n",result);
    // printf("%d\n",result);
@@ -51,11 +61,18 @@ int main(int argc, char **argv) {
 
 
    if(result==96+(result&0X1F)){
+
         //printf("%d\n",result);
         int n=result&0X1F;
+
+       // char o='O';
+       // char u='U';
        // printf("%d\n",n);
+
+
         Subcipherdec(n,&in, &out);
         printf("\n");
+
     }
     if(result==(result&0X1F)){
        // printf("%d\n",result);

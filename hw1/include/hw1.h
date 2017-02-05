@@ -2,7 +2,6 @@
 #define HW_H
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "const.h"
 
 /**

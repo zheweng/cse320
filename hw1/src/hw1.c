@@ -1,4 +1,6 @@
 #include "hw1.h"
+
+
 // For your helper functions (you may add additional files also)
 // DO NOT define a main function here!
 int number(char* number){
@@ -34,7 +36,7 @@ char validargs(int argc, char** argv, FILE** in, FILE** out)
 		// case for -h
 			if(*(*(argv+1)+1)=='h'){
 				if(*(*(argv+1)+2)=='\0'){
-					ret|=0X80;;
+					ret|=0X80;
 
 					return ret;
 				}
@@ -44,8 +46,7 @@ char validargs(int argc, char** argv, FILE** in, FILE** out)
 
 
 	}
-	if(argc==5)
-	{
+	if(argc==5){
 
 		n=320;
 		if(*(*(argv+1))=='-'){
@@ -426,7 +427,7 @@ int Subcipherdec(int n, FILE** in, FILE** out){
 		while(*bp!='\0'){
 
 			if(*bp==c){
-				if(account-n<=0){
+				if(account-n<0){
 					c=*(bp-n+length);
 					break;
 				}
@@ -446,12 +447,11 @@ int Subcipherdec(int n, FILE** in, FILE** out){
 		}
 		fputc(c,*out);
 		bp=Alphabet;
+
 	}
-
 	return 0;
-
-
 }
+
 
 
 int Tutneseen(FILE**in,FILE**out){
@@ -747,13 +747,10 @@ int Tutneseen(FILE**in,FILE**out){
 
 	}
 	return 0;
-
-
-
-
 }
 
+int Tutnesedec(FILE**in, FILE**out){
 
 
-
-
+	return 0;
+}
