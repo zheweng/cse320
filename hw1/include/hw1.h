@@ -21,6 +21,8 @@ char validargs(int argc, char **argv, FILE **in, FILE **out);
 
 int Subcipheren(int n,FILE** in, FILE** out);
 int Subcipherdec(int n,FILE** in, FILE** out);
+int Tutneseen(FILE**in, FILE**out);
+int Tutnesedec(FILE**in, FILE**out);
 
 
 

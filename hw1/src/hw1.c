@@ -12,6 +12,7 @@ int number(char* number){
 	}
 	return res;
 }
+
 char validargs(int argc, char** argv, FILE** in, FILE** out)
 {
 	char ret = 0;
@@ -451,6 +452,307 @@ int Subcipherdec(int n, FILE** in, FILE** out){
 
 
 }
+
+
+int Tutneseen(FILE**in,FILE**out){
+
+
+	int c=fgetc(*in);
+	int temp=c;
+	while(c!=EOF){
+		char** bp= Tutnese;
+		c=fgetc(*in);
+
+		if(c==temp){
+
+			if(c<=90&&c>=65){
+				int check=0;
+				while(*bp!='\0'){
+					if(*(*(bp+0)+0)==c+32){
+						check=1;
+						//	exist=1;
+				               	//printf("gggggg111111s/n");
+						//Print(exist);
+						int i=0;
+						while(*(*(bp+0)+i)!='\0'){
+							if(i==0){
+								fputc('S',*out);
+								fputc('q',*out);
+								fputc('u',*out);
+								fputc('a',*out);
+								fputc(*(*(bp+0)+i)-32,*out);
+
+
+
+								i++;
+							}
+							fputc(*(*(bp+0)+i),*out);
+							//printf("%c",*(*(bp+0)+i));
+							i++;
+
+						}
+					}
+					bp++;
+				}
+				if (check==0){
+					fputc('S',*out);
+					fputc('q',*out);
+					fputc('u',*out);
+					fputc('a',*out);
+					fputc('t',*out);
+					fputc(c,*out);
+					//printf("Squat%c",c);
+				}
+			}
+			else if(c<=122&&c>=97){
+				int check=0;
+				while(*bp!='\0'){
+					if(*(*(bp+0)+0)==c){
+						check=1;
+						int i=0;
+						while(*(*(bp+0)+i)!='\0'){
+							if(i==0){
+								fputc('s',*out);
+								fputc('q',*out);
+								fputc('u',*out);
+								fputc('a',*out);
+								fputc(*(*(bp+0)+i),*out);
+								//printf("squa%c",*(*(bp+0)+i));
+								i++;
+							}
+							fputc(*(*(bp+0)+i),*out);
+							//printf("%c",*(*(bp+0)+i));
+							i++;
+
+						}
+							//exist=2;
+			//				Print(exist);
+					}
+					bp++;
+				}
+
+				if (check==0){
+					fputc('s',*out);
+					fputc('q',*out);
+					fputc('u',*out);
+					fputc('a',*out);
+					fputc('t',*out);
+					fputc(c,*out);
+
+					//printf("squat%c",c);
+				}
+
+			}
+			else{
+				fputc(temp,*out);
+				fputc(c,*out);
+				//printf("%c",temp);
+				//printf("%c",c);
+
+			}
+
+			//printf("%c\n",c);
+			c=fgetc(*in);
+			temp=c;
+
+
+		}
+		else if(c+32==temp||c-32==temp){
+
+			if(c<=90&&c>=65){
+				int check=0;
+				while(*bp!='\0'){
+					if(*(*(bp+0)+0)==c+32){
+						check=1;
+						int i=0;
+						while(*(*(bp+0)+i)!='\0'){
+							if(i==0){
+								fputc('s',*out);
+								fputc('q',*out);
+								fputc('u',*out);
+								fputc('a',*out);
+								fputc(*(*(bp+0)+i)-32,*out);
+
+								//printf("squa%c",*(*(bp+0)+i)-32);
+									i++;
+							}
+							fputc(*(*(bp+0)+i),*out);
+
+							//printf("%c",*(*(bp+0)+i));
+							i++;
+
+						}
+							//exist=3;
+						//	Print(exist);
+					}
+					bp++;
+				}
+				if(check==0){
+					fputc('s',*out);
+					fputc('q',*out);
+					fputc('u',*out);
+					fputc('a',*out);
+					fputc('t',*out);
+					fputc(c,*out);
+
+					//printf("squat%c",c);
+				}
+			}
+			else if(c<=122&&c>=97){
+				int check=0;
+				while(*bp!='\0'){
+					if(*(*(bp+0)+0)==c){
+						check=1;
+						int i=0;
+						while(*(*(bp+0)+i)!='\0'){
+							if(i==0){
+								fputc('S',*out);
+								fputc('q',*out);
+								fputc('u',*out);
+								fputc('a',*out);
+
+								fputc(*(*(bp+0)+i),*out);
+								//printf("Squa%c",*(*(bp+0)+i));
+								i++;
+							}
+							fputc(*(*(bp+0)+i),*out);
+							//printf("%c",*(*(bp+0)+i));
+							i++;
+
+						}
+						//	exist=4;
+						//	Print(exist);
+					}
+					bp++;
+				}
+				if(check==0){
+					fputc('S',*out);
+					fputc('q',*out);
+					fputc('u',*out);
+					fputc('a',*out);
+					fputc('t',*out);
+					fputc(c,*out);
+					//printf("squat%c",c);
+				}
+
+			}
+
+			else{
+				fputc(temp,*out);
+				fputc(c,*out);
+				//printf("%c",temp);
+				//printf("%c",c);
+
+			}
+
+
+			c=fgetc(*in);
+			temp=c;
+
+		}
+		else {
+			//printf("1111first    ");
+
+				if(temp<=90&&temp>=65){
+
+					int check=0;
+					while(*bp!='\0'){
+
+						if(*(*(bp+0)+0)==temp+32){
+
+
+							check=1;
+							int i=0;
+							while(*(*(bp+0)+i)!='\0'){
+								if(i==0){
+									fputc(*(*(bp+0)+i)-32,*out);
+
+									//printf("%c",*(*(bp+0)+i)-32);
+									i++;
+								}
+								fputc(*(*(bp+0)+i),*out);
+
+								//printf("%c",*(*(bp+0)+i));
+								i++;
+
+							}
+						//	exist=5;
+						//	Print(exist);
+						}
+
+						bp++;
+					}
+					if(check==0){
+						fputc(temp,*out);
+
+						//printf("%c",temp);
+					}
+
+
+
+				}
+
+				else if(temp<=122&&temp>=97){
+					//printf("2222second      ");
+					//printf("%c",temp);
+					int check=0;
+					while(*bp!='\0'){
+						if(*(*(bp+0)+0)==temp){
+							int i=0;
+							check=1;
+							while(*(*(bp+0)+i)!='\0'){
+								if(i==0){
+									fputc(*(*(bp+0)+i),*out);
+
+									//printf("%c",*(*(bp+0)+i));
+									i++;
+								}
+								fputc(*(*(bp+0)+i),*out);
+
+								//printf("%c",*(*(bp+0)+i));
+								i++;
+
+							}
+						//	exist=6;
+						//	Print(exist);
+						}
+
+						bp++;
+					}
+					if(check==0){
+						fputc(temp,*out);
+
+						//printf("%c",temp);
+					}
+
+
+
+				}
+
+				else{
+					fputc(temp,*out);
+					//printf("%c",temp);
+				}
+
+
+
+
+			temp=c;
+
+
+
+
+		}
+
+
+	}
+	return 0;
+
+
+
+
+}
+
 
 
 
