@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+
+
 //#include "hw2.h"
 
 #define MAX_SIZE 256
@@ -18,7 +20,9 @@
         "\t-i\tIN_FILE filename, if omitted input comes from stdin (CTRL+D to end input)\n" \
         "\t-d\tfor the dictionary filename, if omitted use default 'rsrc/dictionary.txt'\n" \
         "\t-An\tAutomatically add n (in range 0-5) random misspellings for any word not in the dictionary.\n"); \
+    exit(return_code);\
 } while (0)
+
 
 
 
@@ -30,11 +34,13 @@ FILE* DEFAULT_OUTPUT;
 
 struct dictionary* dict;
 struct misspelled_word* m_list;
+bool check;
 
 struct Args{
     bool d;
     bool i;
     bool o;
+    bool A;
 
     char dictFile[MAX_SIZE];
     char input[MAX_SIZE];
@@ -115,7 +121,7 @@ void printWords(struct dict_word* word, FILE* f);
  *
  * @param      inputWord  The input word
  */
-void processWord(char* inputWord);
+void processWord(char* inputWord, int n);
 
 
 
@@ -138,3 +144,7 @@ bool foundMisspelledMatch(char* inputWord);
  * @return     boolean
  */
 bool foundDictMatch(char* inputWord);
+
+void processWordNoA(char* inputWord);
+
+void remove_punct(char* p, char* before, char* after);

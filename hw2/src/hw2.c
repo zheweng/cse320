@@ -1,16 +1,20 @@
 #include "hw2.h"
+#include "mispelling.h"
+#include <ctype.h>
 
 /* Great filename. */
 
 void processDictionary(FILE* f){
     dict->num_words = 0;
-    while(!feof(f))
+   // while(!feof(f))
+    while(true)
     {
+
         //initialize the current word.
         struct dict_word* currWord;
         if((currWord = (struct dict_word*) malloc(sizeof(struct dict_word))) == NULL)
         {
-            printf("OUT OF MEMORY.\n");
+            printf("ERROR: OUT OF MEMORY.\n");
             return;
         }
         currWord->num_misspellings = 0;
@@ -27,16 +31,20 @@ void processDictionary(FILE* f){
 
 
         fgets(line, MAX_SIZE, f);
+       if(feof(f))
+    		break;
         //if there isn't a space at the end of the line, put one there
-       if((line[strlen(line)-2] != ' ' && line[strlen(line)-1] == '\n') || (line[strlen(line)-1] != ' ' && line[strlen(line)-1] != '\n'))
-           strcat(line, " ");
+     //  if((line[strlen(line)-2] != ' ' && line[strlen(line)-1] == '\n') || (line[strlen(line)-1] != ' ' && line[strlen(line)-1] != '\n'))
+      //    strcat(line, " ");
         //change pointer
+        if((line[strlen(line)-1] != ' ') && (line[strlen(line)-1] != '\n'))
+            strcat(line, " ");
         while(*character != '\0')
         {
             if(counter >=MAX_MISSPELLED_WORDS+1)
                 break;
             //if the character is a space, add the word in word_list and make word NULL.
-            if(*character == ' ')
+            if(*character == ' '||*character=='\n')
             {
                // *wdPtr =' '; //change pointer
                // wdPtr++;
@@ -48,20 +56,20 @@ void processDictionary(FILE* f){
                     dict->num_words++;
 
                     firstWord=0;
-                     printf("%s\n",currWord->word);
+                  //   printf("%s\n",currWord->word);
                 }
                 else
                 {
                     struct misspelled_word* currMisspelling;
                     if((currMisspelling = malloc(sizeof(struct misspelled_word))) == NULL)
                     {
-                        printf("ERROR: OUT OF MEMORY.");
+                        printf("ERROR: OUT OF MEMORY.\n");
                         return;
                     }
 
                     addMisspelledWord(currMisspelling, currWord, wdPtr);
                     counter++;
-                    printf("%s\n",currMisspelling->word);
+                  //  printf("%s\n",currMisspelling->word);
                 }
 
 
@@ -76,7 +84,9 @@ void processDictionary(FILE* f){
             }
 
 
+
           //  printf("%c",*character);
+
 
 
 
@@ -84,21 +94,18 @@ void processDictionary(FILE* f){
             character++;
 
         }
+
     }
 }
 
 void addWord(struct dict_word* dWord, char* word){
     //setting up dWord fields
-  /*  dWord->misspelled_count = 0;
+  	dWord->misspelled_count = 0;
     dWord->num_misspellings = 0;
     dWord->next = dict->word_list;
     strcpy(dWord->word, word);
-    dict->word_list = dWord; */
-    dWord->misspelled_count = 0;
-    dWord->num_misspellings = 0;
-    strcpy(dWord->word, word);
-    dWord->next = dict->word_list;
     dict->word_list = dWord;
+
 
 
 }
@@ -112,22 +119,28 @@ void addMisspelledWord(struct misspelled_word* misspelledWord, struct dict_word*
     (correctWord->misspelled)[++correctWord->num_misspellings] = misspelledWord;
     m_list = misspelledWord; */
     strcpy(misspelledWord->word, word);
-    misspelledWord->misspelled = 0;
+    misspelledWord->misspelled =0;
     misspelledWord->correct_word = correctWord;
-    m_list=misspelledWord;
-    (correctWord->misspelled)[++correctWord->num_misspellings] = misspelledWord;
-
     misspelledWord->next = m_list;
+
+    (correctWord->misspelled)[++correctWord->num_misspellings] = misspelledWord;
+    m_list = misspelledWord;
+
+
 }
 
 void freeWords(struct dict_word* currWord){
-    if(currWord != NULL)
+    if(currWord->next != NULL)
     {
-        freeWords(currWord);
+
 
      //   int i;
         //free word
         printf("FREED %s\n", currWord->word);
+
+        freeWords(currWord->next);
+    }
+    else{
         free(currWord);
     }
 }
@@ -176,8 +189,70 @@ void printWords(struct dict_word* currWord, FILE* f){
         }
     }
 }
+void processWordNoA(char* inputWord){
+    if(foundMisspelledMatch(inputWord))
+        return;
+    if(foundDictMatch(inputWord))
+        return;
 
-void processWord(char* inputWord){
+
+
+}
+ void processWord(char* inputWord,int n){
+    check=false;
+
+
+    if(foundMisspelledMatch(inputWord))
+        return;
+    if(foundDictMatch(inputWord))
+        return;
+    else
+
+    {
+    	check=true;
+
+        char ch;
+        while ((ch = getchar()) != '\n' && ch != EOF){
+            struct dict_word* newWord;
+
+
+             if((newWord = (struct dict_word*) malloc(sizeof(struct dict_word))) == NULL)
+            {
+                printf("ERROR: OUT OF MEMORY.\n");
+                return;
+            }
+
+            addWord(newWord, inputWord);
+            char** wrongWords=gentypos(n, inputWord);
+
+            for(int m=0;m<n;m++){
+               // strcpy(newWord->misspelled[m]->word,wrongWords[m]);
+
+               // newWord->misspelled[m]->misspelled=0;
+
+                char* wdPtr = wrongWords[m];
+                struct misspelled_word* newMWord;
+
+                if((newMWord = (struct misspelled_word*) malloc(sizeof(struct misspelled_word))) == NULL)
+                {
+                        printf("ERROR: OUT OF MEMORY.");
+                        return;
+                }
+               // newWord->misspelled[m]->correct_word=newWord;
+                addMisspelledWord(newMWord, newWord, wdPtr);
+
+             }
+
+
+
+
+        }
+    }
+
+
+}
+
+/*void processWord(char* inputWord,int n){
     if(foundMisspelledMatch(inputWord))
         return;
     if(foundDictMatch(inputWord))
@@ -246,7 +321,8 @@ void processWord(char* inputWord){
             }
         }
     }
-}
+} */
+
 
 bool foundMisspelledMatch(char* inputWord){
     struct misspelled_word* listPtr = m_list;
@@ -259,13 +335,18 @@ bool foundMisspelledMatch(char* inputWord){
             listPtr->correct_word->misspelled_count++;
             return true;
         }
+
         listPtr = listPtr->next; //change
     }
+
     return false;
 }
 
 bool foundDictMatch(char* inputWord){
-    struct dict_word* listPtr = dict->word_list;
+    struct dict_word* listPtr=dict->word_list;
+
+
+
     while(listPtr != NULL)
     {
         if(strcasecmp(inputWord, listPtr->word) == 0)
@@ -273,6 +354,46 @@ bool foundDictMatch(char* inputWord){
         listPtr = listPtr->next;
     }
     return false;
+}
+
+void remove_punct(char* p,char* before, char* after){
+	char* ptr;
+    *before = '\0';
+    strcpy(before, p);
+    ptr = before;
+    int i = 0;
+	while(i<(int)strlen(ptr)){
+        if(isalpha(*ptr)){
+            *ptr = '\0';
+            break;
+        }
+        ptr++;
+        i++;
+    }
+
+    if (strcmp(before, p)==0){
+        *p = '\0';
+        *after = '\0';
+        return;
+    }
+
+    strcpy(after, p+i);
+    strcpy(p, after);
+
+
+
+    int j = strlen(p) -1;
+    while(j>=0){
+        if(isalpha(*(p+j))){
+            strcpy(after, p+j+1);
+            *(p+j+1)='\0';
+            break;
+        }
+        j--;
+    }
+
+    return;
+
 }
 
 

@@ -1,5 +1,8 @@
 #include "hw2.h"
 #include <unistd.h>
+#include <ctype.h>
+
+
 
 int main(int argc, char *argv[]){
     DEFAULT_INPUT = stdin;
@@ -12,7 +15,8 @@ int main(int argc, char *argv[]){
         printf("ERROR: OUT OF MEMORY.\n");
         return EXIT_FAILURE;
     }
-
+    dict->word_list=NULL;
+    dict->num_words=0;
     if((m_list = (struct misspelled_word*) malloc(sizeof(struct misspelled_word*))) == NULL)
     {
         printf("ERROR: OUT OF MEMORY.\n");
@@ -25,11 +29,12 @@ int main(int argc, char *argv[]){
     args.d = false;
     args.i = false;
     args.o = false;
+    args.A = false;
     strcpy(args.dictFile, DEFAULT_DICT_FILE);
     // Make a loop index
     int ch=0;
  //   int i=0;
-   char line[MAX_SIZE];
+ //  char line[MAX_SIZE];
     //Declare Files
     FILE* dFile;
 
@@ -37,6 +42,7 @@ int main(int argc, char *argv[]){
     FILE* iFile = DEFAULT_INPUT;
     FILE* oFile = DEFAULT_OUTPUT;
     opterr=0;
+    int n=0;
    while((ch=getopt(argc,argv,"ho:i:d:A::"))!=-1){
     switch(ch){
         case 'h':
@@ -45,8 +51,6 @@ int main(int argc, char *argv[]){
             break;
 
         case 'd':
-            printf("aaaa");
-
             strcpy(args.dictFile,optarg);
             args.d=true;
             break;
@@ -54,8 +58,7 @@ int main(int argc, char *argv[]){
         case 'i':
 
             strcpy(args.input, optarg);
-            printf("%s\n",optarg);
-            args.i = true;
+           	args.i = true;
             break;
 
         case 'o':
@@ -65,111 +68,251 @@ int main(int argc, char *argv[]){
             break;
 
         case 'A':
-            if(optarg==NULL){
-                return EXIT_FAILURE;
-            }
+            n=*optarg-'0';
+            args.A=true;
             break;
 
         default:
-            fprintf(stderr, "Unrecognized argument.\n");
+           // fprintf(stderr, "Unrecognized argument.\n");
             USAGE(EXIT_FAILURE);
             return EXIT_FAILURE;
             break;
-
-
-
-
-
-
+        }
     }
-
-
-
-
-   }
     dFile = fopen(args.dictFile, "r");
-    printf("%s\n",args.dictFile);
+   // printf("%s\n",args.dictFile);
 
     if(args.i==true){
         iFile=fopen(args.input,"r");
+        if(iFile == NULL){
+        	//printf("Unable to open: %s.\n", args.input);
+
+        	USAGE(EXIT_FAILURE);
+            free(dict);
+            free(m_list);
+            fclose(dFile);
+            if(args.o==true){
+                fclose(oFile);
+            }
+        	return EXIT_FAILURE;
+        }
     }
     if(args.o==true){
         oFile=fopen(args.output,"w");
     }
 
-    if(iFile == NULL && args.i == true)
-    {
-        printf("Unable to open: %s.\n", args.input);
-        USAGE(EXIT_FAILURE);
-        return EXIT_FAILURE;
-    }
     if(dFile == NULL)
     {
-        printf("Unable to open: %s.\n", args.dictFile);
+        //printf("Unable to open: %s.\n", args.dictFile);
+
         USAGE(EXIT_FAILURE);
-        return EXIT_FAILURE;
-    }
-    else
-    {
-        processDictionary(dFile);
-
-    }
-    strcpy(line,"\n--------INPUT FILE WORDS--------\n");
-   fwrite(line, strlen(line)+1, 1, oFile);
-
-    while(!feof(iFile))
-    {
-        char word[MAX_SIZE];
-        char* wdPtr = word;
-        //char line[MAX_SIZE];
-        char* character = line;
-
-        fgets(line, MAX_SIZE+1, iFile);
-
-        //if there isn't a space or newline at the end of the line, put one there
-        if((line[strlen(line)-1] != ' ') && (line[strlen(line)-1] != '\n'))
-            strcat(line, " ");
-        //replaces spaces within a line with new lines
-        while(character != NULL)
-        {
-            if(*character == ' ' || *character == '\n')
-            {
-                char* punct = wdPtr-1;
-                printf("char:%s",punct);
-                while(!((*punct>='a' && *punct<='z') || (*punct>='A' && *punct<='Z')))
-                {
-                    punct--;
-                }
-                punct++;
-                printf("%lu", strlen(wdPtr)-strlen(punct));
-
-
-                wdPtr = NULL;
-                wdPtr = word;
-
-                processWord(wdPtr);
-
-                strcat(wdPtr, " ");
-                fwrite(wdPtr, strlen(wdPtr)+1, 1, oFile);
-            }
-            else
-            {
-                *(wdPtr++) = *character;
-            }
-            character++;
+        if(args.o==true){
+            fclose(oFile);
+        }
+        if(args.i==true){
+            fclose(iFile);
         }
 
-        if(iFile == stdin)
-            break;
+        return EXIT_FAILURE;
     }
 
-    strcpy(line, "\n--------DICTIONARY WORDS--------\n");
+    else
+    {
+    	if(args.A==true){
+    		if(n>5||n<0){
+                if(args.o==true){
+                    fclose(oFile);
+                }
+                if(args.i==true){
+                    fclose(iFile);
+                }
+                fclose(dFile);
+
+            	return EXIT_FAILURE;
+        	}
+        	else{
+           		processDictionary(dFile);
+           		while(true)
+        		{
+        			char word[MAX_SIZE];
+        			char* wdPtr = word;
+        			char line[MAX_SIZE];
+        			char* character = line;
+                  //  char* fn=malloc(strlen(args.dictFile+4));
+                  //  FILE* newdfile;
+
+
+        			fgets(line, MAX_SIZE, iFile);
+        			if(feof(iFile))
+            			break;
+      //  printf("bbb");
+
+       // printf("%s\n",line);
+
+        //if there isn't a space or newline at the end of the line, put one there
+        			if((line[strlen(line)-1] != ' ') && (line[strlen(line)-1] != '\n'))
+            			strcat(line, " ");
+        //replaces spaces within a line with new lines
+        			while(*character != '\0')
+        			{
+            			if(*character>='A'&& *character<='Z'){
+                        *character=tolower(*character);
+                    }
+                /*    if(*character!=' '&&*character!= '\n'){
+                        if(!((*character>='a' && *character<='z') || (*character>='A' && *character<='Z'))){
+                            fputc(*character,oFile);
+                        }
+                    } */
+
+                    if(*character == ' ' || *character == '\n')
+                    {
+
+                        *wdPtr ='\0';
+                        wdPtr = word;
+
+                        if(strlen(word)<1){
+                            fputc(*character, oFile);
+                            character++;
+                            continue;
+                        }
+
+                        char before[MAX_SIZE];
+                        char after[MAX_SIZE];
+
+
+
+                        remove_punct(wdPtr, before, after);
+
+
+                        processWord(wdPtr,n);
+                        printf("%s\n",args.dictFile);
+                     /*   while(check==true){
+                            sprintf(fn,"new_%s",args.dictFile);
+                            newdfile=fopen(fn ,"w");
+                        } */
+                        //printf("%s\n",wdPtr);
+
+                        //strcat(wdPtr, " ");
+
+                        strcat(before, wdPtr);
+                        strcat(before, after);
+                        fputs(before,oFile);
+                        fputc(*character,oFile);
+                		//fwrite(wdPtr, strlen(wdPtr)+1, 1, oFile);
+                		}
+            			else
+            			{
+                			*(wdPtr++) = *character;
+            			}
+            			character++;
+
+            		}
+
+        			if(iFile == stdin)
+            			break;
+            	}
+
+
+            }
+        }
+        else{
+        	processDictionary(dFile);
+        	while(true)
+        	{
+        		char word[MAX_SIZE];
+        		char* wdPtr = word;
+        		char line[MAX_SIZE];
+        		char* character = line;
+
+
+        		fgets(line, MAX_SIZE, iFile);
+        		if(feof(iFile))
+            		break;
+      //  printf("bbb");
+
+       // printf("%s\n",line);
+
+        //if there isn't a space or newline at the end of the line, put one there
+        		if((line[strlen(line)-1] != ' ') && (line[strlen(line)-1] != '\n'))
+            		strcat(line, " ");
+        //replaces spaces within a line with new lines
+        		while(*character != '\0')
+        		{
+            		if(*character>='A'&& *character<='Z'){
+                		*character=tolower(*character);
+           			}
+                /*    if(*character!=' '&&*character!= '\n'){
+                        if(!((*character>='a' && *character<='z') || (*character>='A' && *character<='Z'))){
+                            fputc(*character,oFile);
+                        }
+                    } */
+
+            		if(*character == ' ' || *character == '\n')
+            		{
+
+                        *wdPtr ='\0';
+                        wdPtr = word;
+
+                        if(strlen(word)<1){
+                            fputc(*character, oFile);
+                            character++;
+                            continue;
+                        }
+
+                        char before[MAX_SIZE];
+                        char after[MAX_SIZE];
+
+
+
+                        remove_punct(wdPtr, before, after);
+
+
+                		processWordNoA(wdPtr);
+                        //printf("%s\n",wdPtr);
+
+                		//strcat(wdPtr, " ");
+
+                        strcat(before, wdPtr);
+                        strcat(before, after);
+                		fputs(before,oFile);
+                		fputc(*character,oFile);
+                		//fwrite(wdPtr, strlen(wdPtr)+1, 1, oFile);
+                	}
+            		else
+            		{
+
+                		*(wdPtr++) = *character;
+            		}
+            		character++;
+
+            	}
+
+        		if(iFile == stdin)
+            		break;
+            }
+
+
+
+        }
+
+
+
+
+    }
+  /*  strcpy(line,"\n--------INPUT FILE WORDS--------\n");
+    fwrite(line, strlen(line)+1, 1, oFile);
+    printf("%s\n",args.input); */
+
+   // while(!feof(iFile))
+
+
+  /*  strcpy(line, "\n--------DICTIONARY WORDS--------\n");
     fwrite(line, strlen(line)+1, 1, dFile);
     printWords(dict->word_list , oFile);
 
 
     printf("\n--------FREED WORDS--------\n");
-   freeWords(dict->word_list);
+   freeWords(dict->word_list); */
 
    free(dict);
 
@@ -189,144 +332,6 @@ int main(int argc, char *argv[]){
 
 
 
-       /*     case 'd':
-                if(optarg==NULL){
-                    strcpy(args.dictFile,DEFAULT_DICT_FILE);
-                    args.d=true;
-                   dFile = fopen(args.dictFile, "r");
-
-                }
-                else{
-                    strcpy(args.dictFile, optarg);
-                    args.d = true;
-                   dFile = fopen(args.dictFile, "r");
-                    if(dFile==NULL){
-                        USAGE(EXIT_FAILURE);
-
-                        return EXIT_FAILURE;
-                    }
-
-
-                }
-                break;
-
-            case 'i':
-                if(optarg==NULL){
-                    args.i=true;
-                    iFile = DEFAULT_INPUT;
-
-                }
-                else{
-                    strcpy(args.input, optarg);
-                    args.i = true;
-                    iFile = fopen(optarg, "r");
-                    if(iFile == NULL && args.i == true){
-                        printf("Unable to open: %s.\n", args.input);
-                        USAGE(EXIT_FAILURE);
-                        free(dict);
-                        free(m_list);
-                        if(args.d==true){
-                            fclose(dFile);
-                        }
-                        if(args.i==true){
-                            fclose(iFile);
-                        }
-                        if(args.o==true){
-                            fclose(oFile);
-                        }
-                        return EXIT_FAILURE;
-                     }
-
-                }
-                break;
-
-            case 'o':
-                if(optarg==NULL){
-                    args.o=true;
-                    oFile=DEFAULT_OUTPUT;
-                }
-                else{
-                    strcpy(args.output, optarg);
-                    args.o = true;
-                    oFile = fopen(optarg, "w");
-
-                }
-
-                break;
-
-
-        }
-        if(args.d==true&& args.i==true&&args.o==true){
-          //  processDictionary(dFile);
-            strcpy(line,"\n--------INPUT FILE WORDS--------\n");
-            fwrite(line, strlen(line)+1, 1, oFile);
-
-            while(!feof(iFile)){
-                char word[MAX_SIZE];
-                char* wdPtr = word;
-                char line[MAX_SIZE];
-                char* character = line;
-
-                fgets(line, MAX_SIZE+1, iFile);
-
-                 //if there isn't a space or newline at the end of the line, put one there
-                if((line[strlen(line)-1] != ' ') && (line[strlen(line)-1] != '\n'))
-                    strcat(line, " ");
-                //replaces spaces within a line with new lines
-                while(character != NULL){
-                    if(*character == ' ' || *character == '\n'){
-                        char* punct = wdPtr-1;
-                        printf("char:%s",punct);
-                        while(!((*punct>='a' && *punct<='z') || (*punct>='A' && *punct<='Z'))){
-                            punct--;
-                        }
-                        punct++;
-                        printf("%lu", strlen(wdPtr)-strlen(punct));
-
-
-                        wdPtr = NULL;
-                        wdPtr = word;
-
-                        processWord(wdPtr);
-
-                        strcat(wdPtr, " ");
-                        fwrite(wdPtr, strlen(wdPtr)+1, 1, oFile);
-                    }
-                    else
-                    {
-                         *(wdPtr++) = *character;
-                    }
-                    character++;
-                }
-
-                if(iFile == stdin)
-                    break;
-                }
-
-                strcpy(line, "\n--------DICTIONARY WORDS--------\n");
-                fwrite(line, strlen(line)+1, 1, oFile);
-                printWords(dict->word_list , oFile);
-
-
-                printf("\n--------FREED WORDS--------\n");
-                freeWords(dict->word_list);
-
-        }
-        free(dict);
-   // free m_list;
-        free(m_list);
-        if(args.d==true){
-            fclose(dFile);
-        }
-        if(args.i==true){
-            fclose(iFile);
-        }
-        if(args.o==true){
-            fclose(oFile);
-        }
-        return EXIT_SUCCESS;
-    }
-}   */
 
 
 
