@@ -17,7 +17,7 @@ int main(int argc, char *argv[]){
     }
     dict->word_list=NULL;
     dict->num_words=0;
-  if((m_list = (struct misspelled_word*) malloc(sizeof(struct misspelled_word*))) == NULL)
+   if((m_list = (struct misspelled_word*) malloc(sizeof(struct misspelled_word*))) == NULL)
     {
         printf("ERROR: OUT OF MEMORY.\n");
         return EXIT_FAILURE;
@@ -132,22 +132,23 @@ int main(int argc, char *argv[]){
         	}
         	else{
            		processDictionary(dFile);
+           		//printf("1111");
+           		//printWords(dict->word_list , stdout);
+           		//exit(0);
            		while(true)
         		{
         			char word[MAX_SIZE];
         			char* wdPtr = word;
         			char line[MAX_SIZE];
         			char* character = line;
-                  //  char* fn=malloc(strlen(args.dictFile+4));
-                  //  FILE* newdfile;
+                 //  char* fn=malloc(strlen(args.dictFile+4));
+        		//	char* newfilename;
+                 // 	FILE* newdfile;
 
 
         			fgets(line, MAX_SIZE, iFile);
         			if(feof(iFile))
             			break;
-      //  printf("bbb");
-
-       // printf("%s\n",line);
 
         //if there isn't a space or newline at the end of the line, put one there
         			if((line[strlen(line)-1] != ' ') && (line[strlen(line)-1] != '\n'))
@@ -184,6 +185,10 @@ int main(int argc, char *argv[]){
                        if(strlen(word)>0){
                             processWordNoA(wdPtr);
                         }
+                      //  while(check==true){
+
+                        	// newdfile=fopen(fn,"w");
+                      //  }
 
                        // printf("%s\n",wdPtr);
                       //  printf("%s\n",args.dictFile);
@@ -218,6 +223,10 @@ int main(int argc, char *argv[]){
         }
         else{
         	processDictionary(dFile);
+
+
+
+
         	while(true)
         	{
         		char word[MAX_SIZE];
@@ -306,14 +315,14 @@ int main(int argc, char *argv[]){
    // while(!feof(iFile))
 
 
-  /*  strcpy(line, "\n--------DICTIONARY WORDS--------\n");
-    fwrite(line, strlen(line)+1, 1, dFile);
-    printWords(dict->word_list , oFile);
+  //strcpy(line, "\n--------DICTIONARY WORDS--------\n");
+   // fwrite(line, strlen(line)+1, 1, dFile);
+  //  printWords(dict->word_list , oFile);
 
 
-    printf("\n--------FREED WORDS--------\n");*/
+   // printf("\n--------FREED WORDS--------\n");
+
    freeWords(dict->word_list);
-
    free(dict);
 
     free(m_list);
