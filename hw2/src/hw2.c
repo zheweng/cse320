@@ -240,7 +240,7 @@ void processWordNoA(char* inputWord){
         }
 
         addWord(newWord, inputWord);
-      //  printf("%s\n",inputWord);
+
         char** wrongWords=gentypos(n, inputWord);
 
 
@@ -248,12 +248,12 @@ void processWordNoA(char* inputWord){
 
             strcpy(newWord->misspelled[m]->word,wrongWords[m]);
 
-          //  newWord->misspelled[m]->misspelled=0;
+
 
             char* wdPtr = wrongWords[m];
             struct misspelled_word* newMWord;
 
-          //  printf("%s\n",wdPtr);
+
 
             if((newMWord = (struct misspelled_word*) malloc(sizeof(struct misspelled_word))) == NULL)
             {
@@ -263,7 +263,7 @@ void processWordNoA(char* inputWord){
 
             addMisspelledWord(newMWord, newWord, wdPtr);
             free(wdPtr);
-           // newWord->misspelled[m]->correct_word=newWord;
+
 
 
          }
@@ -362,7 +362,7 @@ bool foundMisspelledMatch(char* inputWord){
             return true;
         }
 
-        listPtr = listPtr->next; //change
+        listPtr = listPtr->next;
     }
 
     return false;

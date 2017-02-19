@@ -17,11 +17,8 @@ int main(int argc, char *argv[]){
     }
     dict->word_list=NULL;
     dict->num_words=0;
-   if((m_list = (struct misspelled_word*) malloc(sizeof(struct misspelled_word*))) == NULL)
-    {
-        printf("ERROR: OUT OF MEMORY.\n");
-        return EXIT_FAILURE;
-    }
+
+
     m_list = NULL;
 
     struct Args args;
@@ -89,7 +86,7 @@ int main(int argc, char *argv[]){
 
         	USAGE(EXIT_FAILURE);
             free(dict);
-            free(m_list);
+           // free(m_list);
             fclose(dFile);
             if(args.o==true){
                 fclose(oFile);
@@ -325,7 +322,7 @@ int main(int argc, char *argv[]){
    freeWords(dict->word_list);
    free(dict);
 
-    free(m_list);
+ //   free(m_list);
 
     fclose(dFile);
     if(args.i==true){
