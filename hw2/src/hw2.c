@@ -6,6 +6,7 @@
 
 void processDictionary(FILE* f){
     dict->num_words = 0;
+
    // while(!feof(f))
     while(true)
     {
@@ -27,6 +28,8 @@ void processDictionary(FILE* f){
         char* character = line;
        // char word_list[MAX_MISSPELLED_WORDS+1][MAX_SIZE];
         int counter = 0;
+
+
         int firstWord = 1;
 
 
@@ -56,6 +59,7 @@ void processDictionary(FILE* f){
                     dict->num_words++;
 
                     firstWord=0;
+
                   //   printf("%s\n",currWord->word);
                 }
                 else
@@ -75,6 +79,8 @@ void processDictionary(FILE* f){
 
 
 
+
+
             }
             //if the character isn't a space or a new line, add the character to word.
             else if(*character != '\n'||*character!=' '){
@@ -82,6 +88,7 @@ void processDictionary(FILE* f){
             	*(wdPtr++)=*character;
 
             }
+
 
 
 

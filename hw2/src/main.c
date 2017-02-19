@@ -319,6 +319,9 @@ int main(int argc, char *argv[]){
 
    // printf("\n--------FREED WORDS--------\n");
 
+   fprintf(stderr, "Total number of words in dictionary: %d\n",dict->num_words );
+
+   fprintf(stderr,"Size of dictionary (in bytes): %d\n",(int)(sizeof(struct dictionary) + sizeof(struct dict_word) * dict->num_words ));
    freeWords(dict->word_list);
    free(dict);
 
