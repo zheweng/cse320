@@ -130,20 +130,43 @@ void addMisspelledWord(struct misspelled_word* misspelledWord, struct dict_word*
 }
 
 void freeWords(struct dict_word* currWord){
-    if(currWord->next != NULL)
+
+    if(currWord != NULL)
     {
 
 
-     //   int i;
-        //free word
-        printf("FREED %s\n", currWord->word);
 
         freeWords(currWord->next);
+        int i=0;
+        for(i=0;i<currWord->num_misspellings;i++){
+            free((currWord->misspelled)[i]);
+        }
+        free(currWord);
+        //free word
+       // printf("FREED %s\n", currWord->word);
+
+
     }
     else{
         free(currWord);
     }
 }
+/*void freeWords(struct dict_word* currWord){
+
+    if(currWord !=NULL)
+    {
+        freeWords(currWord->next);
+        int i=0;
+        for(i = 0; i<currWord->num_misspellings; i++)
+        {
+            free((currWord->misspelled)[i]);
+        }
+        free(currWord);
+    }
+
+
+
+}*/
 
 void printWords(struct dict_word* currWord, FILE* f){
     if(currWord != NULL)
@@ -211,42 +234,44 @@ void processWordNoA(char* inputWord){
     {
     	check=true;
 
-        char ch;
-        while ((ch = getchar()) != '\n' && ch != EOF){
-            struct dict_word* newWord;
+
+        struct dict_word* newWord;
 
 
-             if((newWord = (struct dict_word*) malloc(sizeof(struct dict_word))) == NULL)
-            {
-                printf("ERROR: OUT OF MEMORY.\n");
-                return;
-            }
-
-            addWord(newWord, inputWord);
-            char** wrongWords=gentypos(n, inputWord);
-
-            for(int m=0;m<n;m++){
-               // strcpy(newWord->misspelled[m]->word,wrongWords[m]);
-
-               // newWord->misspelled[m]->misspelled=0;
-
-                char* wdPtr = wrongWords[m];
-                struct misspelled_word* newMWord;
-
-                if((newMWord = (struct misspelled_word*) malloc(sizeof(struct misspelled_word))) == NULL)
-                {
-                        printf("ERROR: OUT OF MEMORY.");
-                        return;
-                }
-               // newWord->misspelled[m]->correct_word=newWord;
-                addMisspelledWord(newMWord, newWord, wdPtr);
-
-             }
-
-
-
-
+        if((newWord = (struct dict_word*) malloc(sizeof(struct dict_word))) == NULL)
+        {
+            printf("ERROR: OUT OF MEMORY.\n");
+            return;
         }
+
+        addWord(newWord, inputWord);
+      //  printf("%s\n",inputWord);
+        char** wrongWords=gentypos(n, inputWord);
+
+
+        for(int m=0;m<n;m++){
+           // strcpy(newWord->misspelled[m]->word,wrongWords[m]);
+
+           // newWord->misspelled[m]->misspelled=0;
+
+            char* wdPtr = wrongWords[m];
+            struct misspelled_word* newMWord;
+          //  printf("%s\n",wdPtr);
+
+            if((newMWord = (struct misspelled_word*) malloc(sizeof(struct misspelled_word))) == NULL)
+            {
+                    printf("ERROR: OUT OF MEMORY.");
+                    return;
+            }
+           // newWord->misspelled[m]->correct_word=newWord;
+            addMisspelledWord(newMWord, newWord, wdPtr);
+
+         }
+
+
+
+
+
     }
 
 

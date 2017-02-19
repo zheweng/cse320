@@ -17,7 +17,7 @@ int main(int argc, char *argv[]){
     }
     dict->word_list=NULL;
     dict->num_words=0;
-    if((m_list = (struct misspelled_word*) malloc(sizeof(struct misspelled_word*))) == NULL)
+  if((m_list = (struct misspelled_word*) malloc(sizeof(struct misspelled_word*))) == NULL)
     {
         printf("ERROR: OUT OF MEMORY.\n");
         return EXIT_FAILURE;
@@ -170,11 +170,7 @@ int main(int argc, char *argv[]){
                         *wdPtr ='\0';
                         wdPtr = word;
 
-                        if(strlen(word)<1){
-                            fputc(*character, oFile);
-                            character++;
-                            continue;
-                        }
+
 
                         char before[MAX_SIZE];
                         char after[MAX_SIZE];
@@ -182,10 +178,15 @@ int main(int argc, char *argv[]){
 
 
                         remove_punct(wdPtr, before, after);
+                     //   printf("%s\n",wdPtr);
+                     //   printf("%s\n",before);
+                      //  printf("%s\n",after);
+                       if(strlen(word)>0){
+                            processWordNoA(wdPtr);
+                        }
 
-
-                        processWord(wdPtr,n);
-                        printf("%s\n",args.dictFile);
+                       // printf("%s\n",wdPtr);
+                      //  printf("%s\n",args.dictFile);
                      /*   while(check==true){
                             sprintf(fn,"new_%s",args.dictFile);
                             newdfile=fopen(fn ,"w");
@@ -253,11 +254,7 @@ int main(int argc, char *argv[]){
                         *wdPtr ='\0';
                         wdPtr = word;
 
-                        if(strlen(word)<1){
-                            fputc(*character, oFile);
-                            character++;
-                            continue;
-                        }
+
 
                         char before[MAX_SIZE];
                         char after[MAX_SIZE];
@@ -265,10 +262,13 @@ int main(int argc, char *argv[]){
 
 
                         remove_punct(wdPtr, before, after);
+                        if(strlen(word)>0){
+                            processWordNoA(wdPtr);
+                        }
 
 
-                		processWordNoA(wdPtr);
-                        //printf("%s\n",wdPtr);
+
+                       // printf("%s\n",wdPtr);
 
                 		//strcat(wdPtr, " ");
 
@@ -311,8 +311,8 @@ int main(int argc, char *argv[]){
     printWords(dict->word_list , oFile);
 
 
-    printf("\n--------FREED WORDS--------\n");
-   freeWords(dict->word_list); */
+    printf("\n--------FREED WORDS--------\n");*/
+   freeWords(dict->word_list);
 
    free(dict);
 
