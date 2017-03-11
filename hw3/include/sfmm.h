@@ -32,6 +32,7 @@
 
 #define SF_FOOTER_SIZE SF_HEADER_SIZE
 
+#define PAGE_SIZE 4096
 /*
 
                                       Format of a memory block
@@ -206,5 +207,12 @@ void sf_blockprint(void* block);
  * (value returned by sf_malloc).
  */
 void sf_varprint(void *data);
+
+sf_free_header* best_fit(size_t request_size);
+void removeallocblock(sf_free_header* allocblock);
+void addfreeblock(sf_free_header* freeblock);
+
+void alloc_a_block(char* ptr, size_t blocksize, size_t reqsize, size_t padding, size_t splintersize);
+void alloc_a_freeblock(char* ptr, size_t blocksize);
 
 #endif
