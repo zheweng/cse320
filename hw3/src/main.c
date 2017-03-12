@@ -60,6 +60,14 @@ int main(int argc, char *argv[]) {
 
     // Print out title for first test
     printf("=== Test1: Allocation test ===\n");
+     sf_malloc(100000);
+
+
+
+
+
+    // Print out the allocator block
+   // sf_varprint(v);
     // Test #1: Allocate an integer
     int *value1 = sf_malloc(sizeof(int));
 
@@ -100,25 +108,25 @@ int main(int argc, char *argv[]) {
 
     printf("=== Test4: does value1 still equal %d ===\n", VALUE1_VALUE);
     check_prim_contents(value1, VALUE1_VALUE, "%d", "value1");
-    press_to_cont();
+   // press_to_cont();
 
     // Snapshot the freelist
     printf("=== Test5: Perform a snapshot ===\n");
     sf_snapshot(true);
-    press_to_cont();
+  //  press_to_cont();
 
     // Free a variable
     printf("=== Test6: Free a block and snapshot ===\n");
     info("%s\n", "Freeing value1...");
     sf_free(value1);
     sf_snapshot(true);
-    press_to_cont();
+//    press_to_cont();
 
     // Allocate more memory
     printf("=== Test7: 8192 byte allocation ===\n");
     void *memory = sf_malloc(8192);
     sf_free(memory);
-    press_to_cont();
+  //  press_to_cont();
 
     sf_mem_fini();
 

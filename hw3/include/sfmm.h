@@ -214,5 +214,5 @@ void addfreeblock(sf_free_header* freeblock);
 
 void alloc_a_block(char* ptr, size_t blocksize, size_t reqsize, size_t padding, size_t splintersize);
 void alloc_a_freeblock(char* ptr, size_t blocksize);
-
+void immcoalescing(char* ptr);
 #endif
