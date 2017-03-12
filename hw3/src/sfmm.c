@@ -16,17 +16,14 @@
 sf_free_header* freelist_head = NULL;
 
 static int pagecount=0;
+char* heapbegin=NULL;
+char* heapend=NULL;
 
 void *sf_malloc(size_t size) {
 	sf_free_header* currentfreehead=NULL;
 	size_t alignedsize;
 	size_t paddingsize;
 	size_t blocksize;
-
-
-
-
-
 
 	if(size==0){
 		errno=EINVAL;
@@ -51,7 +48,12 @@ void *sf_malloc(size_t size) {
 			return NULL;
 		}
 		char* ptr = sf_sbrk(1);
+
 		pagecount++;
+		if(heapbegin==NULL){
+			heapbegin=ptr;
+		}
+		heapend=ptr+PAGE_SIZE;
 
 		//sf_free_header* newpagehead=(sf_free_header*)ptr;
 		alloc_a_freeblock((char*)ptr, PAGE_SIZE);
@@ -119,7 +121,7 @@ void sf_free(void* ptr) {
 		return;
 	char* payloadptr=(char*)ptr;
 	sf_header* allocheader=(sf_header*)(payloadptr-8);
-	sf_footer* allocfooter=(sf_footer*)(payloadptr-8+allocheader->block_size-8);
+	sf_footer* allocfooter=(sf_footer*)(payloadptr-8+(allocheader->block_size<<4)-8);
 	if(allocheader->alloc==0||allocfooter->alloc==0){
 		return;
 	}
@@ -205,6 +207,8 @@ void addfreeblock(sf_free_header* freeblock){
 		sf_free_header* bp = freelist_head;
 		if(freeblock<bp){
 			freeblock->next=freelist_head;
+			freelist_head->prev=freeblock;
+			freelist_head->next=NULL;
 			freeblock->prev=NULL;
 			freelist_head=freeblock;
 			return;
@@ -275,30 +279,48 @@ void alloc_a_freeblock(char* ptr, size_t freeblocksize){
 void immcoalescing(char* ptr){
 	if(ptr==NULL)
 		return;
-
-	sf_header* currentheader=(sf_header*)(ptr);
-	sf_header* nextheader=(sf_header*)(ptr+(currentheader->block_size<<4));
-
-
-
-	sf_footer* prevfooter=(sf_footer*)(ptr-8);
-	if(nextheader==NULL && prevfooter==NULL){
+	if(ptr<heapbegin||ptr>heapend){
 		return;
 	}
-	else if(nextheader==NULL &&prevfooter!=NULL){
-		if(prevfooter->alloc==0){
-			alloc_a_freeblock((ptr-(prevfooter->block_size<<4)),((currentheader->block_size<<4)+(prevfooter->block_size<<4)));
-			addfreeblock((sf_free_header*)(ptr-(prevfooter->block_size<<4)));
+	sf_header* currentheader=(sf_header*)(ptr);
+	if(ptr==heapbegin){
+		if ((ptr+(currentheader->block_size<<4))==heapend){
+
+			alloc_a_freeblock(ptr,currentheader->block_size<<4);
+			addfreeblock((sf_free_header*)ptr);
+		}
+		else{
+
+			sf_header* nextheader=(sf_header*)(ptr+(currentheader->block_size<<4));
+			if(nextheader->alloc==1){
+				alloc_a_freeblock(ptr,currentheader->block_size<<4);
+				addfreeblock((sf_free_header*)ptr);
+			}
+			else{
+				alloc_a_freeblock(ptr,((currentheader->block_size<<4)+(nextheader->block_size<<4)));
+				addfreeblock((sf_free_header*)ptr);
+			}
+
 		}
 	}
-	else if(nextheader!=NULL &&prevfooter==NULL){
-		if(nextheader->alloc==0){
+
+	else if((ptr+(currentheader->block_size<<4))==heapend){
+		sf_footer* prevfooter=(sf_footer*)(ptr-8);
+		if(prevfooter->alloc==1){
 			alloc_a_freeblock(ptr,currentheader->block_size<<4);
 			addfreeblock((sf_free_header*)ptr);
 
 		}
+		else{
+			alloc_a_freeblock((ptr-(prevfooter->block_size<<4)),((currentheader->block_size<<4)+(prevfooter->block_size<<4)));
+			addfreeblock((sf_free_header*)(ptr-(prevfooter->block_size<<4)));
+		}
+
 	}
 	else{
+		sf_header* nextheader=(sf_header*)(ptr+(currentheader->block_size<<4));
+		sf_footer* prevfooter=(sf_footer*)(ptr-8);
+
 		if(nextheader->alloc==1 && prevfooter->alloc==1){
 			alloc_a_freeblock(ptr,currentheader->block_size<<4);
 			addfreeblock((sf_free_header*)ptr);
@@ -317,6 +339,7 @@ void immcoalescing(char* ptr){
 			addfreeblock((sf_free_header*)(ptr-(prevfooter->block_size<<4)));
 		}
 	}
+
 
 
 
