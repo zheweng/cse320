@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#include <string.h>
+
 /**
  * You should store the head of your free list in this variable.
  * Doing so will make it accessible via the extern statement in sfmm.h
@@ -45,6 +47,7 @@ void *sf_malloc(size_t size) {
 
 	while((currentfreehead = best_fit(blocksize))==NULL){
 		if(pagecount==4){
+			errno=ENOMEM;
 			return NULL;
 		}
 		char* ptr = sf_sbrk(1);
@@ -81,7 +84,7 @@ void *sf_malloc(size_t size) {
 			}
 			else{
 
-					//immcoalescing( (char*)newpagehead);
+
 				sf_free_header* bp=freelist_head;
 
 				while(bp->next!=NULL){
@@ -113,7 +116,351 @@ void *sf_malloc(size_t size) {
 }
 
 void *sf_realloc(void *ptr, size_t size) {
-	return NULL;
+	size_t alignedsize;
+	size_t paddingsize;
+	size_t blocksize;
+	char* payloadptr=(char*)ptr;
+	if(ptr==NULL){
+		errno=ENOMEM;
+		return NULL;
+	}
+
+	if(size==0){
+		errno=EINVAL;
+		return NULL;
+
+	}
+
+	if(size%16!=0){
+		alignedsize=((size/16)+1)<<4;
+
+	}
+	else{
+		alignedsize=size;
+	}
+	paddingsize=alignedsize-size;
+	blocksize=alignedsize+SF_HEADER_SIZE+SF_FOOTER_SIZE;
+	sf_header* currenthead=(sf_header*)(payloadptr-8);
+	sf_footer* currentfoot=(sf_footer*)(payloadptr-8+(currenthead->block_size<<4));
+	//case 1: blocksize equal
+	if(blocksize==(currenthead->block_size<<4)){
+		currenthead->padding_size=paddingsize;
+		currenthead->splinter_size=0;
+		currenthead->splinter=0;
+		currentfoot->splinter=0;
+
+
+	}
+	//case 2: blocksize < currentblocksize
+	else if(blocksize<(currenthead->block_size<<4)){
+		if(payloadptr-8==heapbegin){
+			if(payloadptr-8+(currenthead->block_size<<4)==heapend){
+				if((currenthead->block_size<<4)-blocksize<32){
+					currenthead->padding_size=paddingsize;
+					currenthead->splinter_size=(currenthead->block_size<<4)-blocksize;
+					currenthead->splinter=1;
+					currentfoot->splinter=1;
+
+
+				}
+				else{
+					alloc_a_block(payloadptr-8, blocksize,size, paddingsize,0);
+					alloc_a_freeblock((payloadptr-8+(currenthead->block_size<<4)), ((currenthead->block_size<<4)-blocksize));
+					addfreeblock((sf_free_header*)(payloadptr-8+(currenthead->block_size<<4)));
+				}
+			}
+			else{
+				sf_header* nextheader=(sf_header*)(payloadptr-8+(currenthead->block_size<<4));
+				if((currenthead->block_size<<4)-blocksize<32){
+					if(nextheader->alloc==1){
+						currenthead->padding_size=paddingsize;
+						currenthead->splinter_size=(currenthead->block_size<<4)-blocksize;
+						currenthead->splinter=1;
+						currentfoot->splinter=1;
+
+					}
+					else{
+						alloc_a_block(payloadptr-8,blocksize, size,  paddingsize, 0);
+						alloc_a_freeblock(payloadptr-8+blocksize,((currenthead->block_size<<4)-blocksize)+(nextheader->block_size<<4));
+						addfreeblock((sf_free_header*)(payloadptr-8+blocksize));
+
+					}
+				}
+				else{
+					if(nextheader->alloc==1){
+						alloc_a_block(payloadptr-8,blocksize,size,paddingsize,0);
+						alloc_a_freeblock(payloadptr-8+blocksize,((currenthead->block_size<<4)-blocksize));
+						addfreeblock((sf_free_header*)(payloadptr-8+blocksize));
+					}
+					else{
+						alloc_a_block(payloadptr-8,blocksize, size,  paddingsize, 0);
+						alloc_a_freeblock(payloadptr-8+blocksize,((currenthead->block_size<<4)-blocksize)+(nextheader->block_size<<4));
+						addfreeblock((sf_free_header*)(payloadptr-8+blocksize));
+					}
+				}
+
+			}
+		}
+		else if(payloadptr-8+(currenthead->block_size)==heapend){
+			if((currenthead->block_size<<4)-blocksize<32){
+				currenthead->padding_size=paddingsize;
+				currenthead->splinter_size=(currenthead->block_size<<4)-blocksize;
+				currenthead->splinter=1;
+				currentfoot->splinter=1;
+
+
+			}
+			else{
+				alloc_a_block(payloadptr-8, blocksize,size, paddingsize,0);
+				alloc_a_freeblock((payloadptr-8+(currenthead->block_size<<4)), ((currenthead->block_size<<4)-blocksize));
+				addfreeblock((sf_free_header*)(payloadptr-8+(currenthead->block_size<<4)));
+			}
+
+		}
+		else{
+			sf_header* nextheader=(sf_header*)(payloadptr-8+(currenthead->block_size<<4));
+			if((currenthead->block_size<<4)-blocksize<32){
+				if(nextheader->alloc==1){
+					currenthead->padding_size=paddingsize;
+					currenthead->splinter_size=(currenthead->block_size<<4)-blocksize;
+					currenthead->splinter=1;
+					currentfoot->splinter=1;
+
+				}
+				else{
+					alloc_a_block(payloadptr-8,blocksize, size,  paddingsize, 0);
+					alloc_a_freeblock(payloadptr-8+blocksize,((currenthead->block_size<<4)-blocksize)+(nextheader->block_size<<4));
+					addfreeblock((sf_free_header*)(payloadptr-8+blocksize));
+
+				}
+			}
+			else{
+				if(nextheader->alloc==1){
+					alloc_a_block(payloadptr-8,blocksize,size,paddingsize,0);
+					alloc_a_freeblock(payloadptr-8+blocksize,((currenthead->block_size<<4)-blocksize));
+					addfreeblock((sf_free_header*)(payloadptr-8+blocksize));
+				}
+				else{
+					alloc_a_block(payloadptr-8,blocksize, size,  paddingsize, 0);
+					alloc_a_freeblock(payloadptr-8+blocksize,((currenthead->block_size<<4)-blocksize)+(nextheader->block_size<<4));
+					addfreeblock((sf_free_header*)(payloadptr-8+blocksize));
+				}
+			}
+
+		}
+
+
+
+	}
+	//case 3: blocksize>currentblocksize
+
+	else{
+		if(payloadptr-8==heapbegin){
+			if(payloadptr-8+(currenthead->block_size<<4)==heapend){
+				while(blocksize>(currenthead->block_size<<4)){
+					if(pagecount==4){
+						errno=ENOMEM;
+						return NULL;
+					}
+					char* newptr = sf_sbrk(1);
+
+					pagecount++;
+					if(heapbegin==NULL){
+						heapbegin=newptr;
+					}
+					heapend=newptr+PAGE_SIZE;
+
+					//sf_free_header* newpagehead=(sf_free_header*)ptr;
+					alloc_a_freeblock((char*)newptr, PAGE_SIZE);
+					sf_free_header* newpagehead = (sf_free_header*)newptr;
+
+					if(freelist_head==NULL){
+						freelist_head= newpagehead;
+
+
+
+					}
+					else{
+						sf_footer* checkprevfoot=(sf_footer*)(newptr-8);
+
+						if(checkprevfoot->alloc==1){
+							addfreeblock(newpagehead);
+							/*
+							sf_free_header* bp=freelist_head;
+							while(bp->next!=NULL){
+								bp=bp->next;
+							}
+							bp->next=newpagehead;
+							newpagehead->prev=bp;
+							*/
+						}
+						else{
+
+
+							sf_free_header* bp=freelist_head;
+
+							while(bp->next!=NULL){
+								bp=bp->next;
+							}
+							bp->header.block_size=((bp->header.block_size<<4)+PAGE_SIZE)>>4;
+							sf_footer* bp2=(sf_footer*)(((char*)bp) + bp->header.block_size -8);
+							bp2->block_size = bp->header.block_size;
+
+
+						}
+
+					}
+				}
+				if((currenthead->block_size<<4)+(freelist_head->header.block_size<<4)-blocksize<32){
+					alloc_a_block(payloadptr-8, (currenthead->block_size<<4)+(freelist_head->header.block_size<<4), size, paddingsize,(currenthead->block_size<<4)+(freelist_head->header.block_size<<4)-blocksize);
+
+				}
+				else{
+					alloc_a_block(payloadptr-8,blocksize,size,paddingsize,0);
+					alloc_a_freeblock(payloadptr-8+blocksize,(currenthead->block_size<<4)+(freelist_head->header.block_size<<4)-blocksize);
+					addfreeblock((sf_free_header*)(payloadptr-8+blocksize));
+				}
+
+
+
+			}
+			else{
+				sf_header* nextheader=(sf_header*)(payloadptr-8+(currenthead->block_size<<4));
+				if(nextheader->alloc==1){
+					char* newptr= sf_malloc(size);
+					memcpy(newptr,payloadptr,size);
+					sf_free(payloadptr);
+				}
+				else{
+					if((currenthead->block_size<<4)+(nextheader->block_size<<4)<blocksize){
+						char* newptr= sf_malloc(size);
+						memcpy(newptr,payloadptr,size);
+						sf_free(payloadptr);
+					}
+					else{
+						if((currenthead->block_size<<4)+(nextheader->block_size<<4)-blocksize<32){
+							alloc_a_block(payloadptr-8, (currenthead->block_size<<4)+(nextheader->block_size<<4), size, paddingsize,(currenthead->block_size<<4)+(nextheader->block_size<<4)-blocksize);
+
+						}
+						else{
+							alloc_a_block(payloadptr-8,blocksize,size,paddingsize,0);
+							alloc_a_freeblock(payloadptr-8+blocksize,(currenthead->block_size<<4)+(nextheader->block_size<<4)-blocksize);
+							addfreeblock((sf_free_header*)(payloadptr-8+blocksize));
+						}
+					}
+
+				}
+			}
+		}
+
+
+		else if(payloadptr-8+(currenthead->block_size)==heapend){
+			while(blocksize>(currenthead->block_size<<4)){
+				if(pagecount==4){
+					errno=ENOMEM;
+					return NULL;
+				}
+				char* newptr = sf_sbrk(1);
+
+				pagecount++;
+				if(heapbegin==NULL){
+					heapbegin=newptr;
+				}
+				heapend=newptr+PAGE_SIZE;
+
+				//sf_free_header* newpagehead=(sf_free_header*)ptr;
+				alloc_a_freeblock((char*)newptr, PAGE_SIZE);
+				sf_free_header* newpagehead = (sf_free_header*)newptr;
+
+				if(freelist_head==NULL){
+					freelist_head= newpagehead;
+
+
+
+				}
+				else{
+					sf_footer* checkprevfoot=(sf_footer*)(newptr-8);
+
+					if(checkprevfoot->alloc==1){
+						addfreeblock(newpagehead);
+						/*
+						sf_free_header* bp=freelist_head;
+						while(bp->next!=NULL){
+							bp=bp->next;
+						}
+						bp->next=newpagehead;
+						newpagehead->prev=bp;
+						*/
+					}
+					else{
+
+
+						sf_free_header* bp=freelist_head;
+
+						while(bp->next!=NULL){
+							bp=bp->next;
+						}
+						bp->header.block_size=((bp->header.block_size<<4)+PAGE_SIZE)>>4;
+						sf_footer* bp2=(sf_footer*)(((char*)bp) + bp->header.block_size -8);
+						bp2->block_size = bp->header.block_size;
+
+
+					}
+
+				}
+			}
+			if((currenthead->block_size<<4)+(freelist_head->header.block_size<<4)-blocksize<32){
+				alloc_a_block(payloadptr-8, (currenthead->block_size<<4)+(freelist_head->header.block_size<<4), size, paddingsize,(currenthead->block_size<<4)+(freelist_head->header.block_size<<4)-blocksize);
+
+			}
+			else{
+				alloc_a_block(payloadptr-8,blocksize,size,paddingsize,0);
+				alloc_a_freeblock(payloadptr-8+blocksize,(currenthead->block_size<<4)+(freelist_head->header.block_size<<4)-blocksize);
+				addfreeblock((sf_free_header*)(payloadptr-8+blocksize));
+			}
+
+
+
+		}
+		else{
+			sf_header* nextheader=(sf_header*)(payloadptr-8+(currenthead->block_size<<4));
+			if(nextheader->alloc==1){
+				char* newptr= sf_malloc(size);
+				memcpy(newptr,payloadptr,size);
+				sf_free(payloadptr);
+			}
+			else{
+				if((currenthead->block_size<<4)+(nextheader->block_size<<4)<blocksize){
+						char* newptr= sf_malloc(size);
+						memcpy(newptr,payloadptr,size);
+						sf_free(payloadptr);
+					}
+					else{
+						if((currenthead->block_size<<4)+(nextheader->block_size<<4)-blocksize<32){
+							alloc_a_block(payloadptr-8, (currenthead->block_size<<4)+(nextheader->block_size<<4), size, paddingsize,(currenthead->block_size<<4)+(nextheader->block_size<<4)-blocksize);
+
+						}
+						else{
+							alloc_a_block(payloadptr-8,blocksize,size,paddingsize,0);
+							alloc_a_freeblock(payloadptr-8+blocksize,(currenthead->block_size<<4)+(nextheader->block_size<<4)-blocksize);
+							addfreeblock((sf_free_header*)(payloadptr-8+blocksize));
+						}
+					}
+
+			}
+		}
+
+
+
+	}
+
+
+
+
+
+
+
+	return payloadptr;
 }
 
 void sf_free(void* ptr) {
@@ -142,6 +489,7 @@ int sf_info(info* ptr) {
 sf_free_header* best_fit(size_t requestblock_size){
 
 	if(freelist_head == NULL){
+		errno=ENOMEM;
 		return NULL;
 	}
 	sf_free_header* currentfreehead =freelist_head;
@@ -171,6 +519,7 @@ sf_free_header* best_fit(size_t requestblock_size){
 
 	}
 	if(check==0){
+		errno=ENOMEM;
 		return NULL;
 	}
 	return minblock;

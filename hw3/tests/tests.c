@@ -63,7 +63,59 @@ Test(sf_memsuite, Coalesce_no_coalescing, .init = sf_mem_init, .fini = sf_mem_fi
   cr_assert(freelist_head->next->prev != NULL);
 }
 
+
+
+
+
 //#
 //STUDENT UNIT TESTS SHOULD BE WRITTEN BELOW
 //DO NOT DELETE THESE COMMENTS
 //#
+Test(sf_memsuite, Malloc_on_size3200, .init = sf_mem_init, .fini = sf_mem_fini) {
+  char*x = sf_malloc(3200);
+  sf_free_header* first=(sf_free_header*)(x-8);
+  cr_assert(first->header.splinter_size==0,"testblock splinter size is not 0");
+  cr_assert(first->header.alloc==1,"testblock alloc is not 1");
+  cr_assert(first->header.requested_size==3200,"testblock requested size is not 3200");
+  cr_assert(first->header.block_size==(3216>>4),"testblock block size is not 3216");
+
+
+
+}
+
+Test(sf_memsuite, Freelisttest, .init = sf_mem_init, .fini = sf_mem_fini) {
+  char *y = sf_malloc(16000);
+  sf_free_header* second=(sf_free_header*)(y-8);
+  cr_assert(second->header.splinter_size==0,"testblock splinter size is not 0");
+  cr_assert(second->header.alloc==1,"testblock alloc is not 1");
+  cr_assert(second->header.block_size==(16016>>4),"testblock block size is not 16016");
+  cr_assert(freelist_head != NULL, "freelist_head is null");
+  sf_free(y);
+  cr_assert(freelist_head != NULL, "freelist_head is null");
+  cr_assert(second->header.alloc==0,"testblock alloc is not 0");
+  cr_assert(second->header.block_size==(16384>>4),"testblock block size is not 16384");
+
+ }
+
+Test(sf_memsuite, realloctest, .init = sf_mem_init, .fini = sf_mem_fini) {
+  char *z = sf_malloc(1);
+  char *a =sf_malloc(32);
+  sf_free_header* second=(sf_free_header*)(z-8);
+  sf_free_header* third=(sf_free_header*)(a-8);
+
+  cr_assert(second->header.splinter_size==0,"testblock splinter size is not 0");
+  cr_assert(second->header.alloc==1,"testblock alloc is not 1");
+  cr_assert(second->header.block_size==(32>>4),"testblock block size is not 16016");
+  cr_assert(freelist_head != NULL, "freelist_head is null");
+  sf_free(z);
+
+  cr_assert(freelist_head != NULL, "freelist_head is null");
+  cr_assert(second->header.alloc==0,"testblock alloc is not 0");
+  cr_assert(second->header.block_size==(32>>4),"testblock block size is not 32");
+  sf_realloc(a,10);
+  cr_assert(third->header.block_size==(32>>4),"testblock block size is not 32");
+
+ }
+
+
+
