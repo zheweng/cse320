@@ -7,5 +7,15 @@
 #include <unistd.h>
 #include <string.h>
 #include <string.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
+#define MAX_SIZE 4096
+void builtin_help();
+void builtin_exit();
+void builtin_cd(char *argv[], char** oldpwd);
+void builtin_pwd();
+void get_cmds(char* cmd, char** cmdlist);
+char* get_prompt();
 #endif
