@@ -1,6 +1,7 @@
 #include "sfish.h"
 #include "debug.h"
 static char* lastdir = NULL;
+static int sec;
 
 /*
  * As in previous hws the main function must be in its own file!
@@ -31,6 +32,7 @@ int main(int argc, char const *argv[], char* envp[]){
     rl_catch_signals = 0;
     /* This is disable readline's default signal handlers, since you are going to install your own.*/
     char *cmd;
+    signal(SIGTSTP,SIG_IGN);
 
     char* prompt = get_prompt();
 
@@ -58,6 +60,21 @@ int main(int argc, char const *argv[], char* envp[]){
                     builtin_help();
                 }
                 exit(0);
+            }
+            int status;
+            pid_t ppid;
+            ppid=wait(&status);
+            if(ppid>0){
+                if (!WIFEXITED(status))
+                    fprintf(stderr, "Child Error!\n");
+            }
+        }
+        else if(strcmp(cmds[0],"alarm")==0){
+            pid_t cpid;
+            if((cpid=fork())==0){
+                sec = atoi(cmds[1]);
+                signal(SIGALRM, al_handler);
+                alarm(sec);
             }
             int status;
             pid_t ppid;
@@ -198,7 +215,7 @@ int main(int argc, char const *argv[], char* envp[]){
                 if((cpid=fork())==0){
                     int out_index = get_redirect_out_index(cmds, numOfcmds);
                     int in_index = get_redirect_in_index(cmds, numOfcmds);
-                    if (out_index > 0) {
+                    if (out_index > 0 && in_index > 0) {
                         int in_fileno = open(cmds[in_index + 1], O_RDONLY);
                         dup2(in_fileno, 0);
                         close(in_fileno);
@@ -310,4 +327,9 @@ int get_redirect_in_index(char** cmds, int numOfcmds){
         }
     }
     return -1;
+}
+
+void al_handler(){
+    printf("\nYour %d second timer has finished!\n", sec);
+    exit(0);
 }
