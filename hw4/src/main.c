@@ -252,27 +252,28 @@ int main(int argc, char const *argv[], char* envp[]){
     return EXIT_SUCCESS;
 }
 
+
+
 int get_cmds(char* cmd, char** cmdlist) {
+    int num = 0;
 	char* line = strdup(cmd);
-
-	line[strlen(line)] = ' ';
-
-	while(*line && *line == ' ')
-		line++;
-
-	int num = 0;
-	char* cursor;
-	while ((cursor = strchr(line, ' ')) != NULL) {
+    int linelen=strlen(line);
+    line[linelen] = ' ';
+    char* cursor;
+    cursor=strchr(line, ' ');
+	while (cursor != NULL) {
 		cmdlist[num] = line;
 		*cursor = 0;
 		line = cursor + 1;
+        cursor=strchr(line, ' ');
 		num++;
-		while (*line && *line == ' ')
-			line++;
+
 	}
 	cmdlist[num] = 0;
     return num;
 }
+
+
 
 
 char* get_prompt() {
