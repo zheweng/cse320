@@ -37,7 +37,7 @@ int main(int argc, char const *argv[], char* envp[]){
     char* cmds[10];
 
     while((cmd = readline(prompt)) != NULL) {
-    	get_cmds(cmd,cmds);
+    	int numOfcmds = get_cmds(cmd,cmds);
 
 
         if (strcmp(cmds[0], "exit")==0) {
@@ -45,12 +45,27 @@ int main(int argc, char const *argv[], char* envp[]){
         }
 
         else if (strcmp(cmds[0],"help")==0){
-        	if(cmds[1]==NULL){
-        		builtin_help();
-        	}
-        	else{
-        		fprintf(stderr, "sfish: help: no help topics match ` %s:\n", cmds[1]);
-        	}
+            pid_t cpid;
+            if((cpid=fork())==0){
+                int out_index = get_redirect_out_index(cmds, numOfcmds);
+                if (out_index > 0) {
+                    int out_fileno = open(cmds[out_index + 1], O_WRONLY | O_CREAT, 0666);
+                    dup2(out_fileno, 1);
+                    close(out_fileno);
+                    builtin_help();
+                }
+                else {
+                    builtin_help();
+                }
+                exit(0);
+            }
+            int status;
+            pid_t ppid;
+            ppid=wait(&status);
+            if(ppid>0){
+                if (!WIFEXITED(status))
+                    fprintf(stderr, "Child Error!\n");
+            }
         }
         else if (strcmp(cmds[0],"cd")==0){
         	//printf("%s",lastdir);
@@ -59,7 +74,17 @@ int main(int argc, char const *argv[], char* envp[]){
         else if(strcmp(cmds[0],"pwd")==0){
         	pid_t cpid;
         	if((cpid=fork())==0){
-        		builtin_pwd();
+        		int out_index = get_redirect_out_index(cmds, numOfcmds);
+                if (out_index > 0) {
+                    int out_fileno = open(cmds[out_index + 1], O_WRONLY | O_CREAT, 0666);
+                    dup2(out_fileno, 1);
+                    close(out_fileno);
+                    builtin_pwd();
+                }
+                else {
+                    builtin_pwd();
+                }
+                exit(0);
         	}
             int status;
             pid_t ppid;
@@ -76,13 +101,67 @@ int main(int argc, char const *argv[], char* envp[]){
             if(ret!=NULL){
                 pid_t cpid;
                 if((cpid=fork())==0){
-                    struct stat cbuf;
-                    if(stat(cmds[0],&cbuf)==0){
-                        execv(cmds[0],cmds);
+                    int out_index = get_redirect_out_index(cmds, numOfcmds);
+                    int in_index = get_redirect_in_index(cmds, numOfcmds);
+                    //int in_index=get_redirect_in_index(cmds,numOfcmds);
+                    if (out_index > 0 && in_index > 0) {
+                        int in_fileno = open(cmds[in_index + 1], O_RDONLY);
+                        dup2(in_fileno, 0);
+                        close(in_fileno);
+                        cmds[in_index] = NULL;
+
+                        int out_fileno = open(cmds[out_index + 1], O_WRONLY | O_CREAT, 0666);
+                        dup2(out_fileno, 1);
+                        close(out_fileno);
+
+                        struct stat cbuf;
+                        if(stat(cmds[0],&cbuf)==0){
+                            execv(cmds[0],cmds);
+                        }
+                        else{
+                            fprintf(stderr, "sfish: Unknown command %s\n", cmds[0]);
+                        }
                     }
-                    else{
-                        fprintf(stderr, "sfish: Unknown command %s\n", cmds[0]);
+                    else if (out_index > 0) {
+                        int out_fileno = open(cmds[out_index + 1], O_WRONLY | O_CREAT, 0666);
+                        dup2(out_fileno, 1);
+                        close(out_fileno);
+                        cmds[out_index] = NULL;
+
+                        struct stat cbuf;
+                        if(stat(cmds[0],&cbuf)==0){
+                            execv(cmds[0],cmds);
+                        }
+                        else{
+                            fprintf(stderr, "sfish: Unknown command %s\n", cmds[0]);
+                        }
                     }
+                    else if (in_index > 0) {
+                        int in_fileno = open(cmds[in_index + 1], O_RDONLY);
+                        dup2(in_fileno, 0);
+                        close(in_fileno);
+                        cmds[in_index] = NULL;
+
+                        struct stat cbuf;
+                        if(stat(cmds[0],&cbuf)==0){
+                            execv(cmds[0],cmds);
+                        }
+                        else{
+                            fprintf(stderr, "sfish: Unknown command %s\n", cmds[0]);
+                        }
+                    }
+                    else {
+                        struct stat cbuf;
+                        if(stat(cmds[0],&cbuf)==0){
+                            execv(cmds[0],cmds);
+                        }
+                        else{
+                            fprintf(stderr, "sfish: Unknown command %s\n", cmds[0]);
+                        }
+
+                    }
+                    exit(0);
+
                 }
                 int status;
                 pid_t ppid;
@@ -117,7 +196,41 @@ int main(int argc, char const *argv[], char* envp[]){
             if (found) {
                 pid_t cpid;
                 if((cpid=fork())==0){
-                    execv(exe_path,cmds);
+                    int out_index = get_redirect_out_index(cmds, numOfcmds);
+                    int in_index = get_redirect_in_index(cmds, numOfcmds);
+                    if (out_index > 0) {
+                        int in_fileno = open(cmds[in_index + 1], O_RDONLY);
+                        dup2(in_fileno, 0);
+                        close(in_fileno);
+                        cmds[in_index] = NULL;
+
+                        int out_fileno = open(cmds[out_index + 1], O_WRONLY | O_CREAT, 0666);
+                        dup2(out_fileno, 1);
+                        close(out_fileno);
+
+                        execv(exe_path,cmds);
+                    }
+                    else if (out_index > 0) {
+                        int out_fileno = open(cmds[out_index + 1], O_WRONLY | O_CREAT, 0666);
+                        dup2(out_fileno, 1);
+                        close(out_fileno);
+                        cmds[out_index] = NULL;
+
+                        execv(exe_path,cmds);
+                    }
+                    else if (in_index > 0) {
+                        int in_fileno = open(cmds[in_index + 1], O_RDONLY);
+                        dup2(in_fileno, 0);
+                        close(in_fileno);
+                        cmds[in_index] = NULL;
+
+                        execv(exe_path,cmds);
+                    }
+                    else {
+                        execv(exe_path,cmds);
+                    }
+                    exit(0);
+
                 }
                 int status;
                 pid_t ppid;
@@ -139,7 +252,7 @@ int main(int argc, char const *argv[], char* envp[]){
     return EXIT_SUCCESS;
 }
 
-void get_cmds(char* cmd, char** cmdlist) {
+int get_cmds(char* cmd, char** cmdlist) {
 	char* line = strdup(cmd);
 
 	line[strlen(line)] = ' ';
@@ -158,7 +271,7 @@ void get_cmds(char* cmd, char** cmdlist) {
 			line++;
 	}
 	cmdlist[num] = 0;
-
+    return num;
 }
 
 
@@ -178,4 +291,22 @@ char* get_prompt() {
     strcpy(prompt, buf);
     prompt[strlen(buf)] = 0;
     return prompt;
+}
+
+int get_redirect_out_index(char** cmds, int numOfcmds) {
+    for (int i = 0; i < numOfcmds; i++) {
+        if ((strcmp(cmds[i], ">")) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int get_redirect_in_index(char** cmds, int numOfcmds){
+    for (int i = 0; i < numOfcmds; i++) {
+        if ((strcmp(cmds[i], "<")) == 0) {
+            return i;
+        }
+    }
+    return -1;
 }

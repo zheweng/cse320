@@ -5,6 +5,7 @@ void builtin_help(){
 	printf("exit [n]\n");
 	printf("cd [-L|[-P [-e]] [-@]] [dir]\n");
 	printf("pwd [-LP]\n");
+	printf("alarm [n]\n");
 
 }
 
