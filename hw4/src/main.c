@@ -3,6 +3,7 @@
 static char* lastdir = NULL;
 static int sec;
 
+
 /*
  * As in previous hws the main function must be in its own file!
  */
@@ -72,10 +73,26 @@ int main(int argc, char const *argv[], char* envp[]){
         else if(strcmp(cmds[0],"alarm")==0){
             pid_t cpid;
             if((cpid=fork())==0){
-                sec = atoi(cmds[1]);
-                signal(SIGALRM, al_handler);
-                alarm(sec);
+                if(cmds[1]==NULL){
+                     fprintf(stderr, "alarm require an argument!\n");
+                }
+                else if(strcmp(cmds[1],"0")==0){
+                    fprintf(stderr, "invalid argument for alarm!\n");
+                }
+                else{
+                    sec = atoi(cmds[1]);
+                    alarm(sec);
+                    signal(SIGALRM, al_handler);
+
+                }
+
+
+
+
+
+
             }
+
             int status;
             pid_t ppid;
             ppid=wait(&status);
@@ -330,6 +347,13 @@ int get_redirect_in_index(char** cmds, int numOfcmds){
 }
 
 void al_handler(){
-    printf("\nYour %d second timer has finished!\n", sec);
-    exit(0);
+    printf("\nYour %d second timer has finished!", sec);
+    printf("\n");
+
+
+
+
+
+
+
 }
