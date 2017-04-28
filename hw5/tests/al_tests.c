@@ -66,15 +66,7 @@ void* delete_itemfromindex(void* data){
     remove_index_al(global_list,*num);
     pthread_exit(NULL);
 }
-int increaseone(void* data){
-    ((int_t*)data)->num++;
-    return 0;
-}
-int failincrease(void* data){
-    ((int_t*)data)->num++;
-    return -1;
 
-}
 
 /******************************************
  *                  TESTS                 *
@@ -126,20 +118,20 @@ Test(al_suite, 3_removal, .timeout=2, .init=setup, .fini=teardown){
 }
 
 Test(al_suite, 4_removeal, .timeout=10, .init=setup, .fini=teardown) {
-    int num_del_Items = 100;
+    int num_del_Items = 10000;
 
     test_item_t* items[num_del_Items];
 
     int rm_num = num_del_Items + 1;
 
     for(int i = 0; i < num_del_Items; i++) {
-        /* init an array of items to be deleted */
+
         items[i] = (test_item_t*)malloc(sizeof(test_item_t));
         items[i]->i = i;
         items[i]->some_data = malloc(1);
     }
 
-    /* insert items into list */
+
     for(int i = 0; i < num_del_Items; i++)
         insert_al(global_list, items[i]);
 

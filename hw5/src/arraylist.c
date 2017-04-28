@@ -74,6 +74,7 @@ arraylist_t *new_al(size_t item_size){
 	arraylist->base=arrlist_addr;
 
 	arraylist->readerCount=0;
+
 	sem_init(&arraylist->reader_lock,0,1);
 	sem_init(&arraylist->writer_lock,0,1);
 	sem_init(&arraylist->remove_lock,0,1);
@@ -87,13 +88,15 @@ arraylist_t *new_al(size_t item_size){
 size_t insert_al(arraylist_t *self, void* data){
     size_t ret = UINT_MAX;
 
-    bool resized=resize_al(self);
-    if(!resized){
-    	return ret;
-    }
-    void* cp_addr=(char*)self->base+self->length* self->item_size;
+    resize_al(self);
 
-    memcpy(cp_addr,data,self->item_size);
+    sem_wait(&self->writer_lock);
+
+    size_t totallength=self->length* self->item_size;
+
+    void* insertPosition=(char*)self->base+totallength;
+
+    memcpy(insertPosition,data,self->item_size);
     self->length++;
     ret=self->length-1;
 
@@ -166,10 +169,12 @@ void *get_index_al(arraylist_t *self, size_t index){
     if(index>self->length){
     	index=self->length;
     }
+
     char* item_addr=(char*)self->base + index * self->item_size;
     void* cp_addr=malloc(self->item_size);
 
     memcpy(cp_addr,item_addr,self->item_size);
+
     sem_wait(&self->reader_lock);
    	self->readerCount--;
 
@@ -182,20 +187,23 @@ void *get_index_al(arraylist_t *self, size_t index){
 
 bool remove_data_al(arraylist_t *self, void *data){
 	sem_wait(&self->remove_lock);
+
 	size_t item_index=get_data_al(self,data);
+
 	if(item_index==UINT_MAX){
 		sem_post(&self->remove_lock);
    		return false;
    	}
    	sem_wait(&self->writer_lock);
    	char* current_addr=(char*)self->base +item_index *self->item_size;
-   	if(item_index==self->length){
+
+   	if(item_index==self->length-1){
    		memset(current_addr,0,self->item_size);
 
   	}
    	else{
-   		char* next_addr=(char*)self->base+(item_index +1)* self->item_size;
-   		size_t mv_size=(self->length-item_index)*self->item_size;
+   		char* next_addr=current_addr+self->item_size;
+   		size_t mv_size=(self->length-item_index-1)*self->item_size;
    		memmove(current_addr,next_addr,mv_size);
 
    	}
@@ -204,6 +212,7 @@ bool remove_data_al(arraylist_t *self, void *data){
   	self->length--;
 
   	sem_post(&self->writer_lock);
+
   	if(resize_al(self)==false){
   		sem_post(&self->remove_lock);
   		return false;
@@ -217,8 +226,9 @@ bool remove_data_al(arraylist_t *self, void *data){
 
 void *remove_index_al(arraylist_t *self, size_t index){
 	sem_wait(&self->rm_index_1k);
-	if(index>self->length){
-		index=self->length;
+
+	if(index>self->length-1){
+		index=self->length-1;
 	}
 
 
