@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "arraylist.h"
+#include "foreach.h"
 
 /******************************************
  *                  ITEMS                 *
@@ -25,6 +26,11 @@ typedef struct{
     void *some_data;
 }test_item_t;
 
+typedef struct{
+    int num;
+
+}int_t;
+
 /******************************************
  *              HELPER FUNCS              *
  ******************************************/
@@ -44,6 +50,30 @@ void setup(void) {
 void teardown(void) {
     cr_log_error("Tearing down");
     delete_al(global_list, test_item_t_free_func);
+}
+void* insert_itemtoal(void* data){
+    insert_al(global_list,data);
+    pthread_exit(NULL);
+}
+void* delete_itemfromal(void* data){
+    test_item_t* item=(test_item_t*)data;
+    remove_data_al(global_list,item);
+    pthread_exit(NULL);
+
+}
+void* delete_itemfromindex(void* data){
+    int* num=(int*)data;
+    remove_index_al(global_list,*num);
+    pthread_exit(NULL);
+}
+int increaseone(void* data){
+    ((int_t*)data)->num++;
+    return 0;
+}
+int failincrease(void* data){
+    ((int_t*)data)->num++;
+    return -1;
+
 }
 
 /******************************************
@@ -70,4 +100,61 @@ Test(al_suite, 2_insertion, .timeout=2, .init=setup, .fini=teardown){
 }
 
 Test(al_suite, 3_removal, .timeout=2, .init=setup, .fini=teardown){
+    int  num_items=200;
+    test_item_t* items[num_items];
+    for(int i=0;i<num_items;i++){
+        items[i]=(test_item_t*)malloc(sizeof(test_item_t));
+        items[i]->i=i;
+        items[i]->some_data = malloc(1);
+    }
+    for(int i=0;i<num_items;i++){
+        insert_al(global_list,items[i]);
+    }
+
+    cr_assert(global_list->length==num_items,"test 3: wrong length after insertion");
+    pthread_t pids[num_items];
+    for(int i=0;i<num_items;i++){
+        pthread_create(&pids[i],NULL,delete_itemfromal,items[i]);
+    }
+    for(int i=0;i<num_items;i++){
+        pthread_join(pids[i],NULL);
+
+
+    }
+    cr_assert(global_list->length==0,"test3: wrong length after insertion");
+
 }
+
+Test(al_suite, 4_removeal, .timeout=10, .init=setup, .fini=teardown) {
+    int num_del_Items = 100;
+
+    test_item_t* items[num_del_Items];
+
+    int rm_num = num_del_Items + 1;
+
+    for(int i = 0; i < num_del_Items; i++) {
+        /* init an array of items to be deleted */
+        items[i] = (test_item_t*)malloc(sizeof(test_item_t));
+        items[i]->i = i;
+        items[i]->some_data = malloc(1);
+    }
+
+    /* insert items into list */
+    for(int i = 0; i < num_del_Items; i++)
+        insert_al(global_list, items[i]);
+
+    printf("Test4 length of list after insertion: %lu\n", global_list->length);
+
+    cr_assert(global_list->length == num_del_Items, "Test 4: wrong length after insertion");
+
+    pthread_t pids[num_del_Items];
+
+    for(int i = 0; i < num_del_Items; i++)
+        pthread_create(&pids[i], NULL, delete_itemfromindex, &rm_num);
+
+    for(int i = 0; i < num_del_Items; i++)
+        pthread_join(pids[i], NULL);;
+
+    cr_assert(global_list->length == 0, "Test 4: wrong length after deletion");
+}
+

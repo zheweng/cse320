@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <semaphore.h>
+#include <pthread.h>
 #include "const.h"
 
 /*
@@ -21,6 +24,11 @@ typedef struct{
     size_t item_size;
     void* base;
     /* END: .. add locks, other fields BELOW THIS COMMENT if needed .. */
+    int readerCount;
+    sem_t reader_lock;
+    sem_t writer_lock;
+    sem_t remove_lock;
+    sem_t rm_index_1k;
 
 }arraylist_t;
 
