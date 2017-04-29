@@ -68,6 +68,10 @@ void* delete_itemfromindex(void* data){
     remove_index_al(global_list,*num);
     pthread_exit(NULL);
 }
+int apply_increase_one(void* data) {
+    ((int_t*)data)->num++;
+    return 0;
+}
 
 
 
@@ -158,4 +162,38 @@ Test(al_suite, 4_deletion, .timeout=2, .init=setup, .fini=teardown) {
     cr_assert(global_list->length == 0, "Test 4: wrong length after deletion");
 
 }
+Test(al_suite, 5_foreach_wo_mt, .timeout=2, .init=setup, .fini=teardown) {
 
+    arraylist_t *locallist = new_al(sizeof(int_t));
+
+    int_t* test_int1 = (int_t*)malloc(sizeof(int_t));
+    test_int1->num = 7;
+
+    int_t* test_int2 = (int_t*)malloc(sizeof(int_t));
+    test_int2->num = 12;
+
+    int_t* test_int3 = (int_t*)malloc(sizeof(int_t));
+    test_int3->num = 26;
+
+    insert_al(locallist, test_int1);
+    insert_al(locallist, test_int2);
+    insert_al(locallist, test_int3);
+
+    apply(locallist, apply_increase_one);
+
+    int_t* test_int1_dup = get_index_al(locallist, 0);
+    int_t* test_int2_dup = get_index_al(locallist, 1);
+
+
+    int_t* test_int3_dup = get_index_al(locallist, 2);
+
+    #ifdef DEBUG
+    fprintf(stderr, "after apply, int 1: %d\n", test_int1_dup->num);
+    fprintf(stderr, "after apply, int 2: %d\n", test_int2_dup->num);
+    fprintf(stderr, "after apply, int 3: %d\n", test_int3_dup->num);
+    #endif
+
+    cr_assert(test_int1_dup->num == 8, "Error during apply (increase 1): 1");
+    cr_assert(test_int2_dup->num == 13, "Error during apply (increase 1): 1");
+    cr_assert(test_int3_dup->num == 27, "Error during apply (increase 1): 1");
+}
