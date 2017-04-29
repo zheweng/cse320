@@ -63,9 +63,13 @@ void* delete_itemfromal(void* data){
 }
 void* delete_itemfromindex(void* data){
     int* num=(int*)data;
+
+
     remove_index_al(global_list,*num);
     pthread_exit(NULL);
 }
+
+
 
 
 /******************************************
@@ -91,21 +95,23 @@ Test(al_suite, 2_insertion, .timeout=2, .init=setup, .fini=teardown){
     cr_assert(true, "I win");
 }
 
-Test(al_suite, 3_removal, .timeout=2, .init=setup, .fini=teardown){
-    int  num_items=200;
+Test(al_suite,3_deletion, .timeout=2, .init=setup, .fini=teardown){
+    int num_items=200;
     test_item_t* items[num_items];
-    for(int i=0;i<num_items;i++){
-        items[i]=(test_item_t*)malloc(sizeof(test_item_t));
-        items[i]->i=i;
+    for(int i=0; i< num_items;i++){
+        items[i] = (test_item_t*)malloc(sizeof(test_item_t));
+        items[i]->i = i;
         items[i]->some_data = malloc(1);
     }
-    for(int i=0;i<num_items;i++){
+     for(int i=0;i<num_items;i++){
         insert_al(global_list,items[i]);
     }
 
     cr_assert(global_list->length==num_items,"test 3: wrong length after insertion");
-    pthread_t pids[num_items];
+     pthread_t pids[num_items];
     for(int i=0;i<num_items;i++){
+
+
         pthread_create(&pids[i],NULL,delete_itemfromal,items[i]);
     }
     for(int i=0;i<num_items;i++){
@@ -115,9 +121,10 @@ Test(al_suite, 3_removal, .timeout=2, .init=setup, .fini=teardown){
     }
     cr_assert(global_list->length==0,"test3: wrong length after insertion");
 
+
 }
 
-Test(al_suite, 4_removeal, .timeout=10, .init=setup, .fini=teardown) {
+Test(al_suite, 4_deletion, .timeout=2, .init=setup, .fini=teardown) {
     int num_del_Items = 10000;
 
     test_item_t* items[num_del_Items];
@@ -138,15 +145,17 @@ Test(al_suite, 4_removeal, .timeout=10, .init=setup, .fini=teardown) {
     printf("Test4 length of list after insertion: %lu\n", global_list->length);
 
     cr_assert(global_list->length == num_del_Items, "Test 4: wrong length after insertion");
-
     pthread_t pids[num_del_Items];
 
-    for(int i = 0; i < num_del_Items; i++)
+    for(int i = 0; i < num_del_Items; i++){
         pthread_create(&pids[i], NULL, delete_itemfromindex, &rm_num);
+    }
 
-    for(int i = 0; i < num_del_Items; i++)
+    for(int i = 0; i < num_del_Items; i++){
         pthread_join(pids[i], NULL);;
+    }
 
     cr_assert(global_list->length == 0, "Test 4: wrong length after deletion");
+
 }
 
