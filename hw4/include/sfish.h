@@ -22,5 +22,6 @@ int get_cmds(char* cmd, char** cmdlist);
 char* get_prompt();
 int get_redirect_out_index(char** cmds, int numOfcmds);
 int get_redirect_in_index(char** cmds, int numOfcmds);
+int get_redirect_out2_index(char** cmds, int numOfcmds);
 void al_handler();
 #endif
